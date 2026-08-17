@@ -3,6 +3,7 @@ package com.mflores.telecomapp.controller;
 import com.mflores.telecomapp.dto.AccountOwnerRequest;
 import com.mflores.telecomapp.dto.AccountOwnerResponse;
 import com.mflores.telecomapp.service.AccountOwnerService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -21,7 +22,7 @@ public class AccountOwnerController {
     }
 
     @PostMapping
-    public ResponseEntity<AccountOwnerResponse> createAccountOwner(@RequestBody AccountOwnerRequest accountOwnerRequest){
+    public ResponseEntity<AccountOwnerResponse> createAccountOwner(@Valid @RequestBody AccountOwnerRequest accountOwnerRequest){
         AccountOwnerResponse accountOwnerResponse= this.accountOwnerService.createAccountOwner(accountOwnerRequest);
 
         URI uriLocation = ServletUriComponentsBuilder
@@ -46,7 +47,7 @@ public class AccountOwnerController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<AccountOwnerResponse> updateAccountOwnerById(@PathVariable Long id,@RequestBody AccountOwnerRequest accountOwnerRequest){
+    public ResponseEntity<AccountOwnerResponse> updateAccountOwnerById(@PathVariable Long id, @Valid @RequestBody AccountOwnerRequest accountOwnerRequest){
         AccountOwnerResponse accountOwnerResponse = accountOwnerService.updateAccountOwnerById(id, accountOwnerRequest);
         return ResponseEntity.ok(accountOwnerResponse);
     }
