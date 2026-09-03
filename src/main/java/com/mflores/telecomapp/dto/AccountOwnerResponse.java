@@ -1,14 +1,11 @@
 package com.mflores.telecomapp.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
 
-@Getter
-@Setter
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
 
@@ -19,4 +16,5 @@ public class AccountOwnerResponse {
     private String lastName;
     private String email;
     private LocalDate dateOfBirth;
+    private OffsetDateTime createdAt;
 }

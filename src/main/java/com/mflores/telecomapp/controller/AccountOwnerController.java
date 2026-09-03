@@ -12,7 +12,7 @@ import java.net.URI;
 import java.util.List;
 
 @RestController
-@RequestMapping("/accountOwners")
+@RequestMapping("/api/accountOwners")
 public class AccountOwnerController {
 
     private final AccountOwnerService accountOwnerService;

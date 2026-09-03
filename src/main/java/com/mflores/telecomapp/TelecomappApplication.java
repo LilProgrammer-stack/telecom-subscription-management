@@ -10,4 +10,5 @@ public class TelecomappApplication {
 		SpringApplication.run(TelecomappApplication.class, args);
 	}
 
+
 }

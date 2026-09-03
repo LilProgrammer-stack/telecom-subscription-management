@@ -64,7 +64,8 @@ public class AccountOwnerService {
 
     private AccountOwnerResponse convertToAccountOwnerResponse(AccountOwner accountOwner){
         return new AccountOwnerResponse(accountOwner.getAccountOwnerId(), accountOwner.getFirstName(),
-                accountOwner.getLastName(), accountOwner.getEmail(), accountOwner.getDateOfBirth());
+                accountOwner.getLastName(), accountOwner.getEmail(), accountOwner.getDateOfBirth(),
+                accountOwner.getCreatedAt());
     }
 
 }
