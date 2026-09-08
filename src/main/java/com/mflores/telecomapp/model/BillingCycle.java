@@ -18,24 +18,23 @@ public class BillingCycle {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "billing_cycle_id", nullable = false)
     private Long billingCycleId;
-    @Column(name = "cycle_number", nullable = false, unique = true)
+    @Column(name = "cycle_number", nullable = false)
     private Integer cycleNumber;
     @Column(name = "period_start_date", nullable = false)
     private LocalDate periodStartDate;
     @Column(name = "period_end_date", nullable = false)
     private LocalDate periodEndDate;
-    @Column(name = "due_date", nullable = false)
-    private LocalDate dueDate;
 
     @ManyToOne
     @JoinColumn(name = "account_id", nullable = false)
     private Account account;
 
-    public BillingCycle(Integer cycleNumber, LocalDate periodStartDate, LocalDate periodEndDate, LocalDate dueDate, Account account) {
+    public BillingCycle(Integer cycleNumber, LocalDate periodStartDate, LocalDate periodEndDate, Account account) {
         this.cycleNumber = cycleNumber;
         this.periodStartDate = periodStartDate;
         this.periodEndDate = periodEndDate;
-        this.dueDate = dueDate;
         this.account = account;
     }
+
+
 }

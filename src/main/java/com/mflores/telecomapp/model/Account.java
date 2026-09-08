@@ -42,6 +42,13 @@ public class Account {
     //"The relationship is already managed by the account field inside BillingCycle."
     private List<BillingCycle> billingCycles;
 
+    public Account(String accountNumber, BillingLanguage billingLanguage, AccountStatus accountStatus, AccountOwner accountOwner) {
+        this.accountNumber = accountNumber;
+        this.billingLanguage = billingLanguage;
+        this.accountStatus = accountStatus;
+        this.accountOwner = accountOwner;
+    }
+
     public Account(String accountNumber, BillingLanguage billingLanguage, AccountStatus accountStatus, OffsetDateTime creationDate, AccountOwner accountOwner) {
         this.accountNumber = accountNumber;
         this.billingLanguage = billingLanguage;
