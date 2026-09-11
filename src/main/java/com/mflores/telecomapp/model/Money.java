@@ -1,8 +1,14 @@
 package com.mflores.telecomapp.model;
 
+import jakarta.persistence.Column;
+
 import java.util.Currency;
 
-public record Money(long amountInCents, Currency currency) {
+public record Money(
+        @Column(name = "total_amount_cents", nullable = false)
+        long amountInCents,
+        @Column(name = "currency", nullable = false, length = 3)
+        Currency currency) {
 
     public Money {
 

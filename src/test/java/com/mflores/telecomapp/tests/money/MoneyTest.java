@@ -42,7 +42,7 @@ public class MoneyTest {
     }
 
     @Test
-    void shouldSumTwoAmountWhenTheyAreTheSameCurrency() {
+    void shouldSumTwoAmountsWhenTheyAreTheSameCurrency() {
         Money money = new Money(1000L, Currency.getInstance("USD"));
         Money money2 = new Money(500L, Currency.getInstance("USD"));
         Money result = money.add(money2);
@@ -51,7 +51,7 @@ public class MoneyTest {
     }
 
     @Test
-    void shouldNotSumTwoAmountWhenTheyAreTheDifferentCurrency() {
+    void shouldNotSumTwoAmountsWhenTheyAreOfDifferentCurrency() {
         Money money = new Money(1000L, Currency.getInstance("USD"));
         Money money2 = new Money(500L, Currency.getInstance("MXN"));
 
