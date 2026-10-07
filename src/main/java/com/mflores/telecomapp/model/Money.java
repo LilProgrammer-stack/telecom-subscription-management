@@ -12,9 +12,6 @@ public record Money(
 
     public Money {
 
-        if (amountInCents < 0) {
-            throw new IllegalArgumentException("amountInCents cannot be negative");
-        }
         if (currency == null) {
             throw new IllegalArgumentException("currency cannot be null");
         }

@@ -4,13 +4,15 @@ import com.mflores.telecomapp.dto.CreatePlanRequest;
 import com.mflores.telecomapp.dto.PlanResponse;
 import com.mflores.telecomapp.model.Plan;
 import com.mflores.telecomapp.repository.PlanRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.Currency;
 
 @Service
 public class PlanService {
 
     private final PlanRepository planRepository;
+    private static final Currency PLAN_CURRENCY = Currency.getInstance("USD");
 
     public PlanService(PlanRepository planRepository) {
         this.planRepository = planRepository;
@@ -18,8 +20,8 @@ public class PlanService {
 
     public PlanResponse createPlan(CreatePlanRequest planRequest) {
 
-        if (planRequest.getPrice().amountInCents() <= 0) {
-            throw new IllegalArgumentException("Plan price must be greater than zero");
+        if (!PLAN_CURRENCY.equals(planRequest.getPrice().currency())) {
+            throw new IllegalArgumentException("Plan price must be in USD");
         }
 
         Plan plan = new Plan();
@@ -34,6 +36,8 @@ public class PlanService {
         Plan savedPlan = planRepository.save(plan);
         return convertIntoPlanResponse(savedPlan);
     }
+
+
 
     private PlanResponse convertIntoPlanResponse(Plan plan) {
         return new PlanResponse(plan.getPlanId(), plan.getPlanName(), plan.getDescription(),

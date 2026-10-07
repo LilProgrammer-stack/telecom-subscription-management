@@ -31,7 +31,7 @@ public class PlanServiceTest {
 
     //The test doesn't currently care about the returned response; it's testing what gets sent to the repository.
     @Test
-    void shouldCreatePlanSuccessfully() {
+    void shouldCreatePlanSuccessfullyWhenPriceIsInUSD() {
         CreatePlanRequest planRequest = new CreatePlanRequest();
         planRequest.setPlanName("planName");
         planRequest.setDescription("planDescription");
@@ -116,17 +116,17 @@ public class PlanServiceTest {
     }
 
     @Test
-    void shouldNotAllowPlanWithZeroPrice() {
+    void shouldThrowExceptionWhenCurrencyIsNotInUSD() {
         CreatePlanRequest planRequest = new CreatePlanRequest();
         planRequest.setPlanName("planName");
         planRequest.setDescription("planDescription");
         planRequest.setHotspotLimitMb(10000L);
         planRequest.setRoamingLimitMb(10000L);
         planRequest.setDataLimitMb(10000L);
-        Money price = new Money(0, Currency.getInstance("USD"));
+        Money price = new Money(10000, Currency.getInstance("MXN"));
         planRequest.setPrice(price);
 
-        assertThrows(IllegalArgumentException.class,() -> planService.createPlan(planRequest));
+        assertThrows(IllegalArgumentException.class, () -> planService.createPlan(planRequest));
 
         verify(planRepository, never()).save(any(Plan.class));
     }

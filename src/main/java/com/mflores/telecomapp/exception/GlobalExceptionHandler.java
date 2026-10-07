@@ -16,7 +16,7 @@ import java.util.Map;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ApiError> resourceNotFoundException(ResourceNotFoundException e) {
+    public ResponseEntity<ApiError> handleResourceNotFoundException(ResourceNotFoundException e) {
 
         ApiError apiError = new ApiError("Resource Not Found",
                 HttpStatus.NOT_FOUND.value(),
@@ -39,5 +39,15 @@ public class GlobalExceptionHandler {
                 errors);
 
         return new ResponseEntity<>(apiError,HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(BusinessRuleViolationException.class)
+    public ResponseEntity<ApiError> handleBusinessRuleViolationException(BusinessRuleViolationException e) {
+
+        ApiError apiError = new ApiError(e.getMessage(),
+                HttpStatus.CONFLICT.value(),
+                LocalDateTime.now());
+
+        return new ResponseEntity<>(apiError, HttpStatus.CONFLICT);
     }
 }

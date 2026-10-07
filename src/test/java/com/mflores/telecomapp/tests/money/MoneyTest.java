@@ -9,14 +9,6 @@ import java.util.Currency;
 public class MoneyTest {
 
     @Test
-    void shouldThrowIllegalArgumentExceptionWhenAmountIsNegative() {
-
-        Assertions.assertThrows(IllegalArgumentException.class, () -> {
-            Money money = new Money(-1L, Currency.getInstance("USD"));
-        });
-    }
-
-    @Test
     void shouldThrowIllegalArgumentExceptionWhenCurrencyIsNull() {
 
         Assertions.assertThrows(IllegalArgumentException.class, () -> {
