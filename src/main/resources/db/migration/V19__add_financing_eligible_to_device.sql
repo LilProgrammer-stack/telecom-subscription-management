@@ -1,0 +1,2 @@
+ALTER TABLE device
+    ADD COLUMN financing_eligible BOOLEAN NOT NULL DEFAULT FALSE;
