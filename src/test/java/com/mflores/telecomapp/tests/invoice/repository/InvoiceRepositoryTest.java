@@ -231,14 +231,6 @@ public class InvoiceRepositoryTest {
     }
 
     @Test
-    void shouldThrowExceptionWhenAmountIsNegative(){
-
-        Assertions.assertThrows(IllegalArgumentException.class, () -> {
-            Money money = new Money(-1000, Currency.getInstance("USD"));
-        });
-    }
-
-    @Test
     void shouldNotAllowDuplicatedInvoiceNumber(){
 
         AccountOwner accountOwner = new AccountOwner(

@@ -19,8 +19,13 @@ public record Money(
 
     public Money add(Money other) {
 
+        if (other == null) {
+            throw new IllegalArgumentException("other cannot be null");
+        }
+
         if (this.currency.equals(other.currency)) {
-            return new Money(this.amountInCents + other.amountInCents, currency);
+            return new Money(
+                    Math.addExact(this.amountInCents, other.amountInCents), currency);
         }else  {
             throw new IllegalArgumentException("Both amount's currency are not the same");
         }

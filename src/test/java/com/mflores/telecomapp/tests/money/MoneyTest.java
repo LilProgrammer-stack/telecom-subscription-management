@@ -1,7 +1,7 @@
 package com.mflores.telecomapp.tests.money;
 
 import com.mflores.telecomapp.model.Money;
-import org.junit.jupiter.api.Assertions;
+import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 
 import java.util.Currency;
@@ -11,7 +11,7 @@ public class MoneyTest {
     @Test
     void shouldThrowIllegalArgumentExceptionWhenCurrencyIsNull() {
 
-        Assertions.assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(IllegalArgumentException.class, () -> {
             Money money = new Money(10000000L, null);
         });
     }
@@ -22,15 +22,15 @@ public class MoneyTest {
 
         Money money = new Money(10000000L, Currency.getInstance("USD"));
 
-        Assertions.assertEquals(10000000L, money.amountInCents());
-        Assertions.assertEquals(Currency.getInstance("USD"), money.currency());
+        assertEquals(10000000L, money.amountInCents());
+        assertEquals(Currency.getInstance("USD"), money.currency());
     }
 
     @Test
     void shouldCreateMoneyConstructorSuccessfullyWithAmountZero() {
         Money money = new Money(0, Currency.getInstance("USD"));
 
-        Assertions.assertEquals(0, money.amountInCents());
+        assertEquals(0, money.amountInCents());
     }
 
     @Test
@@ -39,7 +39,7 @@ public class MoneyTest {
         Money money2 = new Money(500L, Currency.getInstance("USD"));
         Money result = money.add(money2);
 
-        Assertions.assertEquals(1500, result.amountInCents());
+        assertEquals(1500L, result.amountInCents());
     }
 
     @Test
@@ -47,9 +47,37 @@ public class MoneyTest {
         Money money = new Money(1000L, Currency.getInstance("USD"));
         Money money2 = new Money(500L, Currency.getInstance("MXN"));
 
-        Assertions.assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(IllegalArgumentException.class, () -> {
             money.add(money2);
         });
+    }
 
+    @Test
+    void shouldSubtractMoneyWhenTheyAreTheSameCurrency() {
+        Money money = new Money(1000L, Currency.getInstance("USD"));
+        Money money2 = new Money(-500L, Currency.getInstance("USD"));
+
+        Money result = money.add(money2);
+
+        assertEquals(500L, result.amountInCents());
+    }
+
+    @Test
+    void shouldThrowArithmeticExceptionWhenAdditionOverflows() {
+        Money money = new Money(Long.MAX_VALUE, Currency.getInstance("USD"));
+        Money money2 = new Money(1L, Currency.getInstance("USD"));
+
+        assertThrows(ArithmeticException.class, () -> {
+            money.add(money2);
+        });
+    }
+
+    @Test
+    void shouldThrowExceptionWhenAddingNullMoney() {
+        Money money = new Money(1000L, Currency.getInstance("USD"));
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            money.add(null);
+        });
     }
 }
