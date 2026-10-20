@@ -1,9 +1,9 @@
 package com.mflores.telecomapp.service;
 
 import com.mflores.telecomapp.dto.*;
-import com.mflores.telecomapp.exception.BusinessRuleViolationException;
 import com.mflores.telecomapp.model.AccountOwner;
 import com.mflores.telecomapp.model.CustomerCredential;
+import com.mflores.telecomapp.model.EmailVerificationToken;
 import com.mflores.telecomapp.repository.AccountOwnerRepository;
 import com.mflores.telecomapp.repository.CustomerCredentialRepository;
 import jakarta.transaction.Transactional;
@@ -19,12 +19,19 @@ public class CustomerRegistrationService {
     private final AccountService accountService;
     private final CustomerCredentialRepository customerCredentialRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EmailVerificationTokenService emailVerificationTokenService;
+    private final EmailService emailService;
 
-    public CustomerRegistrationService(AccountOwnerRepository accountOwnerRepository, AccountService accountService, CustomerCredentialRepository customerCredentialRepository, PasswordEncoder passwordEncoder) {
+    public CustomerRegistrationService(AccountOwnerRepository accountOwnerRepository,
+                                       AccountService accountService, CustomerCredentialRepository customerCredentialRepository,
+                                       PasswordEncoder passwordEncoder,  EmailVerificationTokenService emailVerificationTokenService,
+                                       EmailService emailService) {
         this.accountOwnerRepository = accountOwnerRepository;
         this.accountService = accountService;
         this.customerCredentialRepository = customerCredentialRepository;
         this.passwordEncoder = passwordEncoder;
+        this.emailVerificationTokenService = emailVerificationTokenService;
+        this.emailService = emailService;
     }
 
     @Transactional
@@ -40,14 +47,22 @@ public class CustomerRegistrationService {
         accountOwner.setCreatedAt(OffsetDateTime.now());
         AccountOwner savedAccountOwner = accountOwnerRepository.save(accountOwner);
 
-        String hashedPassword = passwordEncoder.encode(createCustomerCredentialRequest.getPassword());;
+        String hashedPassword = passwordEncoder.encode(createCustomerCredentialRequest.getPassword());
 
         CustomerCredential customerCredential = new CustomerCredential();
         customerCredential.setAccountOwner(savedAccountOwner);
         customerCredential.setEmailVerified(false);
         customerCredential.setPasswordHash(hashedPassword);
-        customerCredentialRepository.save(customerCredential);
+        CustomerCredential savedCustomerCredential = customerCredentialRepository.save(customerCredential);
 
+        EmailVerificationToken returnedEmailToken = emailVerificationTokenService.createVerificationToken(savedCustomerCredential);
+
+        String verificationLink =
+                emailService.getVerificationBaseUrl()
+                + "/api/registration/verify?token="
+                + returnedEmailToken.getToken();
+
+        emailService.sendVerificationEmail(savedAccountOwner.getEmail(), verificationLink);
         AccountResponse savedAccountResponse = accountService.createAccount(createAccountRequest, savedAccountOwner);
 
         return new CustomerRegistrationResponse(savedAccountOwner.getFirstName(),

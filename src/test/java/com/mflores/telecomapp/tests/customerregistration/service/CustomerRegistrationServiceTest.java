@@ -4,11 +4,15 @@ import com.mflores.telecomapp.dto.*;
 import com.mflores.telecomapp.model.AccountOwner;
 import com.mflores.telecomapp.model.BillingLanguage;
 import com.mflores.telecomapp.model.CustomerCredential;
+import com.mflores.telecomapp.model.EmailVerificationToken;
 import com.mflores.telecomapp.repository.AccountOwnerRepository;
 import com.mflores.telecomapp.repository.CustomerCredentialRepository;
 import com.mflores.telecomapp.service.AccountService;
 import com.mflores.telecomapp.service.CustomerRegistrationService;
 import static org.junit.jupiter.api.Assertions.*;
+
+import com.mflores.telecomapp.service.EmailService;
+import com.mflores.telecomapp.service.EmailVerificationTokenService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,6 +41,10 @@ public class CustomerRegistrationServiceTest {
     private AccountService accountService;
     @Mock
     private CustomerCredentialRepository  customerCredentialRepository;
+    @Mock
+    private EmailVerificationTokenService emailVerificationTokenService;
+    @Mock
+    private EmailService emailService;
 
     @InjectMocks
     private CustomerRegistrationService customerRegistrationService;
@@ -77,6 +85,14 @@ public class CustomerRegistrationServiceTest {
         createCustomerCredentialRequest.setPassword("Password123!");
         createCustomerCredentialRequest.setConfirmPassword("Password123!");
 
+        EmailVerificationToken emailVerificationToken = new EmailVerificationToken();
+        emailVerificationToken.setToken("Tk123456");
+        emailVerificationToken.setCreatedAt(createdAt);
+        emailVerificationToken.setExpiresAt(createdAt.plusMinutes(2));
+        emailVerificationToken.setUsed(false);
+        emailVerificationToken.setCustomerCredential(customerCredential);
+
+
         when(accountOwnerRepository.save(any(AccountOwner.class)))
                 .thenReturn(accountOwner);
 
@@ -86,20 +102,98 @@ public class CustomerRegistrationServiceTest {
         when(customerCredentialRepository.save(any(CustomerCredential.class)))
                 .thenReturn(customerCredential);
 
+        when(emailVerificationTokenService.createVerificationToken(any(CustomerCredential.class)))
+                .thenReturn(emailVerificationToken);
+
         when(accountService.createAccount(createAccountRequest, accountOwner))
                 .thenReturn(accountResponse);
 
         CustomerRegistrationResponse customerRegistrationResponse = customerRegistrationService.createCustomerRegistration(createAccountRequest, createCustomerRegistrationRequest,
                 createCustomerCredentialRequest);
 
+        ArgumentCaptor<CustomerCredential> captor = ArgumentCaptor.forClass(CustomerCredential.class);
+
         assertEquals("TB123456",customerRegistrationResponse.getAccountNumber());
         assertEquals("John",customerRegistrationResponse.getFirstName());
         assertEquals("Doe",customerRegistrationResponse.getLastName());
         assertEquals("doejohn10@gmail.com",customerRegistrationResponse.getEmail());
 
+        verify(customerCredentialRepository).save(captor.capture());
+        CustomerCredential customerCredential = captor.getValue();
+
+        assertFalse(customerCredential.getEmailVerified());
+        assertEquals(accountOwner,customerCredential.getAccountOwner());
+        assertEquals("passwordtest", customerCredential.getPasswordHash());
+
         verify(passwordEncoder).encode(createCustomerCredentialRequest.getPassword());
         verify(accountOwnerRepository).save(any(AccountOwner.class));
-        verify(customerCredentialRepository).save(any(CustomerCredential.class));
+        verify(emailVerificationTokenService).createVerificationToken(customerCredential);
+        verify(emailService).sendVerificationEmail(any(String.class), any(String.class));
+    }
+
+    @Test
+    void shouldSendVerificationEmailAfterSuccessfulRegistration(){
+
+        CreateAccountRequest createAccountRequest = new CreateAccountRequest();
+        createAccountRequest.setBillingLanguage(BillingLanguage.ENGLISH);
+
+        CreateCustomerRegistrationRequest  createCustomerRegistrationRequest = new CreateCustomerRegistrationRequest();
+        createCustomerRegistrationRequest.setFirstName("John");
+        createCustomerRegistrationRequest.setLastName("Doe");
+        createCustomerRegistrationRequest.setEmail("doejohn10@gmail.com");
+        createCustomerRegistrationRequest.setDateOfBirth(LocalDate.of(1980, 1, 1));
+
+        CreateCustomerCredentialRequest  createCustomerCredentialRequest = new CreateCustomerCredentialRequest();
+        createCustomerCredentialRequest.setPassword("Password123!");
+        createCustomerCredentialRequest.setConfirmPassword("Password123!");
+
+        EmailVerificationToken emailVerificationToken = new EmailVerificationToken();
+        emailVerificationToken.setToken("Tk123456");
+        emailVerificationToken.setCreatedAt(createdAt);
+        emailVerificationToken.setExpiresAt(createdAt.plusMinutes(2));
+        emailVerificationToken.setUsed(false);
+        emailVerificationToken.setCustomerCredential(customerCredential);
+
+
+        when(accountOwnerRepository.save(any(AccountOwner.class)))
+                .thenReturn(accountOwner);
+
+        when(passwordEncoder.encode(createCustomerCredentialRequest.getPassword()))
+                .thenReturn("passwordtest");
+
+        when(customerCredentialRepository.save(any(CustomerCredential.class)))
+                .thenReturn(customerCredential);
+
+        when(emailVerificationTokenService.createVerificationToken(any(CustomerCredential.class)))
+                .thenReturn(emailVerificationToken);
+
+        when(emailService.getVerificationBaseUrl())
+                .thenReturn("http://localhost:8080");
+
+        when(accountService.createAccount(createAccountRequest, accountOwner))
+                .thenReturn(accountResponse);
+
+        CustomerRegistrationResponse customerRegistrationResponse = customerRegistrationService.createCustomerRegistration(createAccountRequest, createCustomerRegistrationRequest,
+                createCustomerCredentialRequest);
+
+        ArgumentCaptor<String> recipientCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> verificationLinkCaptor = ArgumentCaptor.forClass(String.class);
+
+        assertEquals("TB123456",customerRegistrationResponse.getAccountNumber());
+        assertEquals("John",customerRegistrationResponse.getFirstName());
+        assertEquals("Doe",customerRegistrationResponse.getLastName());
+        assertEquals("doejohn10@gmail.com",customerRegistrationResponse.getEmail());
+
+        verify(emailService).sendVerificationEmail(recipientCaptor.capture(), verificationLinkCaptor.capture());
+
+        assertEquals(accountOwner.getEmail(),recipientCaptor.getValue());
+        assertEquals("http://localhost:8080/api/registration/verify?token=Tk123456",
+                verificationLinkCaptor.getValue()
+        );
+
+        verify(passwordEncoder).encode(createCustomerCredentialRequest.getPassword());
+        verify(accountOwnerRepository).save(any(AccountOwner.class));
+        verify(emailVerificationTokenService).createVerificationToken(customerCredential);
 
     }
 
@@ -119,6 +213,14 @@ public class CustomerRegistrationServiceTest {
         createCustomerCredentialRequest.setPassword("Password123!");
         createCustomerCredentialRequest.setConfirmPassword("Password123!");
 
+        EmailVerificationToken emailVerificationToken = new EmailVerificationToken();
+        emailVerificationToken.setToken("Tk123456");
+        emailVerificationToken.setCreatedAt(createdAt);
+        emailVerificationToken.setExpiresAt(createdAt.plusMinutes(2));
+        emailVerificationToken.setUsed(false);
+        emailVerificationToken.setCustomerCredential(customerCredential);
+
+
         when(accountOwnerRepository.save(any(AccountOwner.class)))
                 .thenReturn(accountOwner);
 
@@ -127,6 +229,9 @@ public class CustomerRegistrationServiceTest {
 
         when(customerCredentialRepository.save(any(CustomerCredential.class)))
                 .thenReturn(customerCredential);
+
+        when(emailVerificationTokenService.createVerificationToken(any(CustomerCredential.class)))
+                .thenReturn(emailVerificationToken);
 
         when(accountService.createAccount(createAccountRequest, accountOwner))
                 .thenReturn(accountResponse);
@@ -164,6 +269,14 @@ public class CustomerRegistrationServiceTest {
         createCustomerCredentialRequest.setPassword("Password123!");
         createCustomerCredentialRequest.setConfirmPassword("Password123!");
 
+        EmailVerificationToken emailVerificationToken = new EmailVerificationToken();
+        emailVerificationToken.setToken("Tk123456");
+        emailVerificationToken.setCreatedAt(createdAt);
+        emailVerificationToken.setExpiresAt(createdAt.plusMinutes(2));
+        emailVerificationToken.setUsed(false);
+        emailVerificationToken.setCustomerCredential(customerCredential);
+
+
         when(accountOwnerRepository.save(any(AccountOwner.class)))
                 .thenReturn(accountOwner);
 
@@ -172,6 +285,9 @@ public class CustomerRegistrationServiceTest {
 
         when(customerCredentialRepository.save(any(CustomerCredential.class)))
                 .thenReturn(customerCredential);
+
+        when(emailVerificationTokenService.createVerificationToken(any(CustomerCredential.class)))
+                .thenReturn(emailVerificationToken);
 
         when(accountService.createAccount(createAccountRequest, accountOwner))
                 .thenReturn(accountResponse);
