@@ -1,4 +1,4 @@
-package com.mflores.telecomapp.tests.emailverificationtoken.service;
+package com.mflores.telecomapp.tests.emailverificationtoken;
 
 import com.mflores.telecomapp.controller.EmailVerificationController;
 import com.mflores.telecomapp.exception.BusinessRuleViolationException;
