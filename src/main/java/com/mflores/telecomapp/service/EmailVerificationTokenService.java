@@ -14,12 +14,12 @@ import java.util.Optional;
 public class EmailVerificationTokenService {
 
     private final EmailVerificationTokenRepository emailVerificationTokenRepository;
-    private final EmailTokenGenerator emailTokenGenerator;
+    private final SecureTokenGenerator secureTokenGenerator;
 
     public EmailVerificationTokenService(EmailVerificationTokenRepository emailVerificationTokenRepository,
-                                         EmailTokenGenerator emailTokenGenerator) {
+                                         SecureTokenGenerator secureTokenGenerator) {
         this.emailVerificationTokenRepository = emailVerificationTokenRepository;
-        this.emailTokenGenerator = emailTokenGenerator;
+        this.secureTokenGenerator = secureTokenGenerator;
     }
 
     @Transactional
@@ -37,12 +37,12 @@ public class EmailVerificationTokenService {
             }
         }
 
-        EmailVerificationToken savedEmailVerificationToken = emailVerificationTokenRepository.save(generateEmailToken(customerCredential));
+        EmailVerificationToken savedEmailVerificationToken = emailVerificationTokenRepository.save(generateToken(customerCredential));
         return savedEmailVerificationToken;
     }
 
-    private EmailVerificationToken generateEmailToken(CustomerCredential customerCredential) {
-        String generatedToken = emailTokenGenerator.generateEmailToken();
+    private EmailVerificationToken generateToken(CustomerCredential customerCredential) {
+        String generatedToken = secureTokenGenerator.generateEmailToken();
         OffsetDateTime now = OffsetDateTime.now();
 
         EmailVerificationToken emailVerificationToken = new EmailVerificationToken();

@@ -4,7 +4,7 @@ import com.mflores.telecomapp.model.AccountOwner;
 import com.mflores.telecomapp.model.CustomerCredential;
 import com.mflores.telecomapp.model.EmailVerificationToken;
 import com.mflores.telecomapp.repository.EmailVerificationTokenRepository;
-import com.mflores.telecomapp.service.EmailTokenGenerator;
+import com.mflores.telecomapp.service.SecureTokenGenerator;
 import com.mflores.telecomapp.service.EmailVerificationTokenService;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -27,7 +27,7 @@ public class EmailVerificationTokenServiceTest {
     @Mock
     private EmailVerificationTokenRepository emailVerificationTokenRepository;
     @Mock
-    private EmailTokenGenerator  emailTokenGenerator;
+    private SecureTokenGenerator secureTokenGenerator;
     @InjectMocks
     private EmailVerificationTokenService emailVerificationTokenService;
 
@@ -44,7 +44,7 @@ public class EmailVerificationTokenServiceTest {
     @Test
     void shouldCreateVerificationTokenSuccessfully() {
 
-        when(emailTokenGenerator.generateEmailToken())
+        when(secureTokenGenerator.generateEmailToken())
                 .thenReturn("token");
 
         when(emailVerificationTokenRepository.save(any(EmailVerificationToken.class)))
@@ -75,7 +75,7 @@ public class EmailVerificationTokenServiceTest {
         when(emailVerificationTokenRepository.findByCustomerCredential(credential))
                 .thenReturn(Optional.of(oldToken));
 
-        when(emailTokenGenerator.generateEmailToken())
+        when(secureTokenGenerator.generateEmailToken())
                 .thenReturn("token");
 
         when(emailVerificationTokenRepository.save(any(EmailVerificationToken.class)))
@@ -109,7 +109,7 @@ public class EmailVerificationTokenServiceTest {
 
         verify(emailVerificationTokenRepository, never()).delete(any(EmailVerificationToken.class));
         verify(emailVerificationTokenRepository, never()).save(any(EmailVerificationToken.class));
-        verify(emailTokenGenerator, never()).generateEmailToken();
+        verify(secureTokenGenerator, never()).generateEmailToken();
     }
 
     @Test

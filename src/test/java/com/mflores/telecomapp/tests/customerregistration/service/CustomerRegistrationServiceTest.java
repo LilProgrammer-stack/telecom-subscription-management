@@ -168,7 +168,7 @@ public class CustomerRegistrationServiceTest {
                 .thenReturn(emailVerificationToken);
 
         when(emailService.getVerificationBaseUrl())
-                .thenReturn("http://localhost:8080");
+                .thenReturn("http://localhost:5173");
 
         when(accountService.createAccount(createAccountRequest, accountOwner))
                 .thenReturn(accountResponse);
@@ -187,7 +187,8 @@ public class CustomerRegistrationServiceTest {
         verify(emailService).sendVerificationEmail(recipientCaptor.capture(), verificationLinkCaptor.capture());
 
         assertEquals(accountOwner.getEmail(),recipientCaptor.getValue());
-        assertEquals("http://localhost:8080/api/registration/verify?token=Tk123456",
+        assertEquals(
+                "http://localhost:5173/register/verify-email?token=Tk123456",
                 verificationLinkCaptor.getValue()
         );
 

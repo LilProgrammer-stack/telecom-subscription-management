@@ -1,6 +1,7 @@
 package com.mflores.telecomapp.service;
 
 import com.mflores.telecomapp.dto.*;
+import com.mflores.telecomapp.exception.BusinessRuleViolationException;
 import com.mflores.telecomapp.model.AccountOwner;
 import com.mflores.telecomapp.model.CustomerCredential;
 import com.mflores.telecomapp.model.EmailVerificationToken;
@@ -43,7 +44,12 @@ public class CustomerRegistrationService {
         accountOwner.setFirstName(createCustomerRegistrationRequest.getFirstName());
         accountOwner.setLastName(createCustomerRegistrationRequest.getLastName());
         accountOwner.setDateOfBirth(createCustomerRegistrationRequest.getDateOfBirth());
-        accountOwner.setEmail(createCustomerRegistrationRequest.getEmail());
+        if (accountOwnerRepository.existsByEmail(createCustomerRegistrationRequest.getEmail())) {
+            throw new BusinessRuleViolationException("Email already exists");
+        }else {
+            accountOwner.setEmail(createCustomerRegistrationRequest.getEmail());
+        }
+
         accountOwner.setCreatedAt(OffsetDateTime.now());
         AccountOwner savedAccountOwner = accountOwnerRepository.save(accountOwner);
 
@@ -53,13 +59,13 @@ public class CustomerRegistrationService {
         customerCredential.setAccountOwner(savedAccountOwner);
         customerCredential.setEmailVerified(false);
         customerCredential.setPasswordHash(hashedPassword);
-        CustomerCredential savedCustomerCredential = customerCredentialRepository.save(customerCredential);
+        CustomerCredential savedCredential = customerCredentialRepository.save(customerCredential);
 
-        EmailVerificationToken returnedEmailToken = emailVerificationTokenService.createVerificationToken(savedCustomerCredential);
+        EmailVerificationToken returnedEmailToken = emailVerificationTokenService.createVerificationToken(savedCredential);
 
         String verificationLink =
                 emailService.getVerificationBaseUrl()
-                + "/api/registration/verify?token="
+                + "/register/verify-email?token="
                 + returnedEmailToken.getToken();
 
         emailService.sendVerificationEmail(savedAccountOwner.getEmail(), verificationLink);

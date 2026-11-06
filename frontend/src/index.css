@@ -1,0 +1,6 @@
+@import "tailwindcss";
+
+@theme {
+  /* This creates a custom utility class: w-custom-layout */
+  --width-custom-layout: min(900px, 90%);
+}
