@@ -6,6 +6,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.security.core.AuthenticationException;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -49,5 +50,15 @@ public class GlobalExceptionHandler {
                 LocalDateTime.now());
 
         return new ResponseEntity<>(apiError, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ApiError> handleAuthenticationException(AuthenticationException e) {
+
+        ApiError apiError = new ApiError("Authentication failed. Please check your credentials.",
+                HttpStatus.UNAUTHORIZED.value(),
+                LocalDateTime.now());
+
+        return new ResponseEntity<>(apiError, HttpStatus.UNAUTHORIZED);
     }
 }

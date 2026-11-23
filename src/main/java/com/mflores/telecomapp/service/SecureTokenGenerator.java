@@ -10,7 +10,7 @@ public class SecureTokenGenerator {
 
     private final SecureRandom random = new SecureRandom();
 
-    public String generateEmailToken() {
+    public String generateToken() {
 
         byte[] randomBytes = new byte[32];
         random.nextBytes(randomBytes);

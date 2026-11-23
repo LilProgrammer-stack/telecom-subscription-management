@@ -14,7 +14,7 @@ public class AccountOwnerResponse {
     private Long accountOwnerId;
     private String firstName;
     private String lastName;
-    private String email;
     private LocalDate dateOfBirth;
     private OffsetDateTime createdAt;
+    private String email;
 }

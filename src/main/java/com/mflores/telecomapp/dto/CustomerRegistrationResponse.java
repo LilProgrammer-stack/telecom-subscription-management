@@ -13,4 +13,5 @@ public class CustomerRegistrationResponse {
     private String lastName;
     private String email;
     private String accountNumber;
+    //private String registrationEditToken;
 }

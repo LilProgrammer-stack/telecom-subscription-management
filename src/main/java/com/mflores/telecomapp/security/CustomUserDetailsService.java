@@ -1,8 +1,7 @@
 package com.mflores.telecomapp.security;
 
-import com.mflores.telecomapp.exception.ResourceNotFoundException;
-import com.mflores.telecomapp.model.CustomerCredential;
-import com.mflores.telecomapp.repository.CustomerCredentialRepository;
+import com.mflores.telecomapp.model.UserAccount;
+import com.mflores.telecomapp.repository.UserAccountRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -11,19 +10,19 @@ import org.springframework.stereotype.Service;
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
 
-    private final CustomerCredentialRepository customerCredentialRepository;
+    private final UserAccountRepository userAccountRepository;
 
-    public CustomUserDetailsService(CustomerCredentialRepository customerCredentialRepository) {
-        this.customerCredentialRepository = customerCredentialRepository;
+    public CustomUserDetailsService(UserAccountRepository userAccountRepository) {
+        this.userAccountRepository = userAccountRepository;
     }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
-        CustomerCredential foundCredential = customerCredentialRepository.findByAccountOwnerEmail(username)
-                .orElseThrow(() -> new UsernameNotFoundException("The customer credential could not be found."));
+        UserAccount foundUser = userAccountRepository.findByEmail(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + username));
 
-        return new CustomUserDetails(foundCredential);
+        return new CustomUserDetails(foundUser);
     }
 
 

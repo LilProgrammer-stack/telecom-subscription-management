@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.OffsetDateTime;
+
 @Entity
 @Table(name = "customer_credential")
 @Data
@@ -30,4 +32,10 @@ public class CustomerCredential {
 
     @Column(name = "email_verified", nullable = false)
     private Boolean emailVerified;
+
+    @Column(name = "registration_edit_token_hash", length = 64)
+    private String registrationEditTokenHash;
+
+    @Column(name = "registration_edit_token_expires_at")
+    private OffsetDateTime registrationEditTokenExpiresAt;
 }

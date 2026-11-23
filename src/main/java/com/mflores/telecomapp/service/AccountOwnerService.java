@@ -2,20 +2,27 @@ package com.mflores.telecomapp.service;
 
 import com.mflores.telecomapp.dto.AccountOwnerRequest;
 import com.mflores.telecomapp.dto.AccountOwnerResponse;
+import com.mflores.telecomapp.dto.CreateCustomerRegistrationRequest;
 import com.mflores.telecomapp.exception.ResourceNotFoundException;
 import com.mflores.telecomapp.model.AccountOwner;
+import com.mflores.telecomapp.model.UserAccount;
 import com.mflores.telecomapp.repository.AccountOwnerRepository;
+import com.mflores.telecomapp.repository.UserAccountRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 
 @Service
 public class AccountOwnerService {
 
     private final AccountOwnerRepository accountOwnerRepository;
+    private final UserAccountRepository userAccountRepository;
 
-    public AccountOwnerService(AccountOwnerRepository accountOwnerRepository) {
+    public AccountOwnerService(AccountOwnerRepository accountOwnerRepository,
+                               UserAccountRepository userAccountRepository) {
         this.accountOwnerRepository = accountOwnerRepository;
+        this.userAccountRepository = userAccountRepository;
     }
 
 
@@ -31,14 +38,15 @@ public class AccountOwnerService {
         return convertToAccountOwnerResponse(accountOwner);
     }
 
-    public AccountOwnerResponse createAccountOwner(AccountOwnerRequest accountOwnerRequest){
-        AccountOwner accountOwner = new AccountOwner(accountOwnerRequest.getFirstName(),
-                accountOwnerRequest.getLastName(),
-                accountOwnerRequest.getEmail(),
-                accountOwnerRequest.getDateOfBirth());
+    public AccountOwner createAccountOwner(CreateCustomerRegistrationRequest createCustomerRegistrationRequest,
+                                                   UserAccount userAccount){
+        AccountOwner accountOwner = new AccountOwner(createCustomerRegistrationRequest.getFirstName(),
+                createCustomerRegistrationRequest.getLastName(),
+                userAccount,
+                createCustomerRegistrationRequest.getDateOfBirth(),
+                OffsetDateTime.now());
 
-        accountOwnerRepository.save(accountOwner);
-        return convertToAccountOwnerResponse(accountOwner);
+        return accountOwnerRepository.save(accountOwner);
     }
 
     private AccountOwner getEntityAccountOwnerById(Long id){
@@ -49,9 +57,7 @@ public class AccountOwnerService {
         AccountOwner accountOwner = getEntityAccountOwnerById(id);
         accountOwner.setFirstName(ownerRequest.getFirstName());
         accountOwner.setLastName(ownerRequest.getLastName());
-        accountOwner.setEmail(ownerRequest.getEmail());
         accountOwner.setDateOfBirth(ownerRequest.getDateOfBirth());
-
         accountOwnerRepository.save(accountOwner);
 
         return convertToAccountOwnerResponse(accountOwner);
@@ -64,8 +70,9 @@ public class AccountOwnerService {
 
     private AccountOwnerResponse convertToAccountOwnerResponse(AccountOwner accountOwner){
         return new AccountOwnerResponse(accountOwner.getAccountOwnerId(), accountOwner.getFirstName(),
-                accountOwner.getLastName(), accountOwner.getEmail(), accountOwner.getDateOfBirth(),
-                accountOwner.getCreatedAt());
+                accountOwner.getLastName(), accountOwner.getDateOfBirth(),
+                accountOwner.getCreatedAt(),
+                accountOwner.getUserAccount().getEmail());
     }
 
 }

@@ -2,37 +2,41 @@ package com.mflores.telecomapp.service;
 
 import com.mflores.telecomapp.dto.*;
 import com.mflores.telecomapp.exception.BusinessRuleViolationException;
-import com.mflores.telecomapp.model.AccountOwner;
-import com.mflores.telecomapp.model.CustomerCredential;
-import com.mflores.telecomapp.model.EmailVerificationToken;
-import com.mflores.telecomapp.repository.AccountOwnerRepository;
-import com.mflores.telecomapp.repository.CustomerCredentialRepository;
+import com.mflores.telecomapp.exception.ResourceNotFoundException;
+import com.mflores.telecomapp.model.*;
+import com.mflores.telecomapp.repository.RoleRepository;
+import com.mflores.telecomapp.repository.UserAccountRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.time.OffsetDateTime;
-
 @Service
 public class CustomerRegistrationService {
 
-    private final AccountOwnerRepository accountOwnerRepository;
     private final AccountService accountService;
-    private final CustomerCredentialRepository customerCredentialRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailVerificationTokenService emailVerificationTokenService;
     private final EmailService emailService;
+    //private final TokenHashingService tokenHashingService;
+    //private final SecureTokenGenerator secureTokenGenerator;
+    private final UserAccountRepository userAccountRepository;
+    private final RoleRepository roleRepository;
+    private final AccountOwnerService accountOwnerService;
 
-    public CustomerRegistrationService(AccountOwnerRepository accountOwnerRepository,
-                                       AccountService accountService, CustomerCredentialRepository customerCredentialRepository,
-                                       PasswordEncoder passwordEncoder,  EmailVerificationTokenService emailVerificationTokenService,
-                                       EmailService emailService) {
-        this.accountOwnerRepository = accountOwnerRepository;
+    public CustomerRegistrationService(AccountService accountService,
+                                       PasswordEncoder passwordEncoder,
+                                       EmailVerificationTokenService emailVerificationTokenService,
+                                       EmailService emailService,
+                                       UserAccountRepository userAccountRepository,
+                                       RoleRepository roleRepository,
+                                       AccountOwnerService accountOwnerService) {
         this.accountService = accountService;
-        this.customerCredentialRepository = customerCredentialRepository;
         this.passwordEncoder = passwordEncoder;
         this.emailVerificationTokenService = emailVerificationTokenService;
         this.emailService = emailService;
+        this.userAccountRepository = userAccountRepository;
+        this.roleRepository = roleRepository;
+        this.accountOwnerService = accountOwnerService;
     }
 
     @Transactional
@@ -40,39 +44,43 @@ public class CustomerRegistrationService {
                                                                    CreateCustomerRegistrationRequest createCustomerRegistrationRequest,
                                                                    CreateCustomerCredentialRequest createCustomerCredentialRequest) {
 
-        AccountOwner accountOwner = new AccountOwner();
-        accountOwner.setFirstName(createCustomerRegistrationRequest.getFirstName());
-        accountOwner.setLastName(createCustomerRegistrationRequest.getLastName());
-        accountOwner.setDateOfBirth(createCustomerRegistrationRequest.getDateOfBirth());
-        if (accountOwnerRepository.existsByEmail(createCustomerRegistrationRequest.getEmail())) {
+        if (userAccountRepository.existsByEmail(
+                createCustomerRegistrationRequest.getEmail())) {
             throw new BusinessRuleViolationException("Email already exists");
-        }else {
-            accountOwner.setEmail(createCustomerRegistrationRequest.getEmail());
         }
-
-        accountOwner.setCreatedAt(OffsetDateTime.now());
-        AccountOwner savedAccountOwner = accountOwnerRepository.save(accountOwner);
-
+        UserAccount userAccount = new UserAccount();
+        userAccount.setEmail(createCustomerRegistrationRequest.getEmail());
+        userAccount.setEmailVerified(false);
+        Role role = roleRepository.findByRoleName("ROLE_CUSTOMER")
+                .orElseThrow(()->new ResourceNotFoundException("Role not found"));
+        userAccount.setRole(role);
         String hashedPassword = passwordEncoder.encode(createCustomerCredentialRequest.getPassword());
+        userAccount.setPasswordHash(hashedPassword);
+        UserAccount savedUserAccount = userAccountRepository.save(userAccount);
 
-        CustomerCredential customerCredential = new CustomerCredential();
-        customerCredential.setAccountOwner(savedAccountOwner);
-        customerCredential.setEmailVerified(false);
-        customerCredential.setPasswordHash(hashedPassword);
-        CustomerCredential savedCredential = customerCredentialRepository.save(customerCredential);
+        AccountOwner savedAccountOwner = accountOwnerService
+                .createAccountOwner(createCustomerRegistrationRequest, savedUserAccount);
 
-        EmailVerificationToken returnedEmailToken = emailVerificationTokenService.createVerificationToken(savedCredential);
+        //customerCredential.setRegistrationEditTokenExpiresAt(OffsetDateTime.now().plusMinutes(15));
+
+        //String registrationEditToken = secureTokenGenerator.generateToken();
+        //String registrationEditTokenHash = tokenHashingService.hashToken(registrationEditToken);
+
+        //customerCredential.setRegistrationEditTokenHash(registrationEditTokenHash);
+        //CustomerCredential savedCredential = customerCredentialRepository.save(customerCredential);
+        AccountResponse savedAccountResponse = accountService.createAccount(createAccountRequest, savedAccountOwner);
+
+        EmailVerificationToken returnedEmailToken = emailVerificationTokenService.createEmailVerificationToken(savedUserAccount);
 
         String verificationLink =
                 emailService.getVerificationBaseUrl()
-                + "/register/verify-email?token="
-                + returnedEmailToken.getToken();
+                        + "/register/verify-email?token="
+                        + returnedEmailToken.getToken();
 
-        emailService.sendVerificationEmail(savedAccountOwner.getEmail(), verificationLink);
-        AccountResponse savedAccountResponse = accountService.createAccount(createAccountRequest, savedAccountOwner);
+        emailService.sendVerificationEmail(savedAccountOwner.getUserAccount().getEmail(), verificationLink);
 
         return new CustomerRegistrationResponse(savedAccountOwner.getFirstName(),
-                savedAccountOwner.getLastName(), savedAccountOwner.getEmail(),
+                savedAccountOwner.getLastName(), savedAccountOwner.getUserAccount().getEmail(),
                 savedAccountResponse.getAccountNumber());
     }
 }

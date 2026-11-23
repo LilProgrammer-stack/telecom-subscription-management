@@ -8,6 +8,6 @@ import java.util.Optional;
 
 public interface CustomerCredentialRepository extends JpaRepository<CustomerCredential, Long> {
 
-    Optional<CustomerCredential> findByAccountOwnerEmail(String email);
+    //Optional<CustomerCredential> findByAccountOwnerEmail(String email);
 
 }

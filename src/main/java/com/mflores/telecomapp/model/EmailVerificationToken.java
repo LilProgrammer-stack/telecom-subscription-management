@@ -29,9 +29,9 @@ public class EmailVerificationToken {
     private OffsetDateTime expiresAt;
 
     @Column(nullable = false)
-    private Boolean used;
+    private boolean used;
 
     @OneToOne
-    @JoinColumn(name = "customer_credential_id", nullable = false, unique = true)
-    private CustomerCredential customerCredential;
+    @JoinColumn(name = "user_account_id", nullable = false, unique = true)
+    private UserAccount userAccount;
 }
